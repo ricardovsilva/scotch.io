@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.0.8.js"></script>
+  <title>My Own chat</title>
+  <style type="text/css">
+    .hbox { display: -webkit-flex; display: flex; -webkit-flex-direction: row; flex-direction: row; width: 50em; }
+    .grow { flex: 1; }
+    textarea { height: 30em; }
+    #error { color: red; }
+  </style>
+</head>
+<body>
+  <div class="hbox">
+    <textarea id="history" class="grow"></textarea>
+  </div>
+  <div class="hbox">
+    <input type="text" id="message" class="grow">
+    <button id="send">Send</button>
+  </div>
+  <div class="hbox" id="error"></div>
+  <script type="text/javascript">
+    function $(id){
+      return document.getElementById(id);
+    }
+
+    var pubnub = new PubNub({
+      subscribeKey: "sub-c-07f7738c-7ad5-11e6-9717-0619f8945a4f",
+      publishKey: "pub-c-663c47bb-710b-413e-a73f-ad0a24f3a88d"
+    });
+
+    pubnub.addListener({
+      message: function(msg) {
+        if(msg.message.rejected) {
+          $('error').innerHTML = msg.message.reason;
+          return;
+        }
+
+        $('history').value += msg.message.text + '\n';
+      }
+    });
+
+    pubnub.subscribe({channels:['radchat']});
+
+    $('send').addEventListener('click', function() {
+      pubnub.publish({
+        channel: 'radchat',
+        message:{text: $('message').value}
+      });
+    });
+  </script>
+</body>
+</html>
